@@ -1,0 +1,66 @@
+@page "/login"
+@using SecureLogin.Services
+@using SecureLogin.Data
+@inject AuthenticationService AuthService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject ApplicationDbContext _context
+@using Microsoft.EntityFrameworkCore
+
+<h3>Login</h3>
+
+@if (loginFailed)
+{
+    <div class="alert alert-danger" role="alert">
+        Login failed. Please check your credentials and try again.
+    </div>
+}
+
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <InputText id="email" class="form-control" @bind-Value="loginModel.Email" />
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+    <a href="/forgotpassword" class="btn btn-link">Forgot Password?</a>
+</EditForm>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+    private bool loginFailed = false;
+
+    private async Task HandleLogin()
+    {
+        var success = await AuthService.ValidateUser(loginModel.Email, loginModel.Password);
+        loginFailed = !success;
+        if (success)
+        {
+            // Retrieve the user from the database
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginModel.Email);
+            if (user != null)
+            {
+                // Generate the JWT token
+                var token = AuthService.GenerateJwtToken(user);
+
+                // Store the JWT token in session storage
+                await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "jwt", token);
+            }
+            NavigationManager.NavigateTo("/", true);
+        }
+    }
+
+    public class LoginModel
+    {
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
+}

@@ -1,0 +1,150 @@
+@page "/usermanagement"
+@attribute [Authorize(Roles = "Admin")]
+@inject IJSRuntime JSRuntime
+
+@using SecureLogin.Models
+@using SecureLogin.Services
+@inject IUserService UserService
+
+<h3>User Management</h3>
+
+<div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="Search by email" @bind="searchTerm">
+    <div class="input-group-append">
+        <button class="btn btn-outline-secondary" @onclick="SearchUsers">Search</button>
+    </div>
+</div>
+
+@if (users != null && users.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.Email</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => ShowEditPopup(user)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteUser(user.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No users found.</p>
+}
+
+@code {
+    private List<User> users;
+    private string searchTerm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        try
+        {
+            users = await UserService.GetUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching users: {ex.Message}");
+        }
+    }
+
+    private async Task ShowEditPopup(User user)
+    {
+        await JSRuntime.InvokeVoidAsync("showEditPopup", user.Id, user.Email);
+    }
+
+    private async Task DeleteUser(int userId)
+    {
+        try
+        {
+            var result = await UserService.RemoveUserAsync(userId);
+            if (result)
+            {
+                await LoadUsersAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting user: {ex.Message}");
+        }
+    }
+
+    private async Task SearchUsers()
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                users = await UserService.SearchUsersAsync(searchTerm);
+            }
+            else
+            {
+                await LoadUsersAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error searching users: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public async Task UpdateUserAndRefreshTable(int userId, string newEmail, string newPassword)
+    {
+        try
+        {
+            // Get the existing user from the UserService
+            var existingUser = await UserService.GetUserByIdAsync(userId);
+
+            if (existingUser != null)
+            {
+                // Update the user's email
+                existingUser.Email = newEmail;
+
+                // Update the user's information
+                var updatedUser = await UserService.UpdateUserAsync(existingUser);
+
+                if (updatedUser != null)
+                {
+                    // Fetch the updated list of users
+                    await LoadUsersAsync();
+
+                    // Optionally, you can show a success message or perform additional actions
+                    Console.WriteLine("User updated successfully");
+                }
+                else
+                {
+                    // Handle the case when the user update fails
+                    Console.WriteLine("Failed to update user");
+                }
+            }
+            else
+            {
+                // Handle the case when the user is not found
+                Console.WriteLine("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating user: {ex.Message}");
+        }
+    }
+}

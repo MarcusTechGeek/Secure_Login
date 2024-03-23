@@ -1,0 +1,54 @@
+@page "/register"
+@using SecureLogin.Services
+@inject AuthenticationService AuthService
+@inject NavigationManager NavigationManager
+
+<h3>Register</h3>
+
+@if (registrationFailed)
+{
+    <div class="alert alert-danger" role="alert">
+        Registration failed. This email might already be used or there was an error. Please try again.
+    </div>
+}
+
+<EditForm Model="@registerModel" OnValidSubmit="HandleRegistration">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <InputText id="email" class="form-control" @bind-Value="registerModel.Email" />
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="registerModel.Password" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Register</button>
+</EditForm>
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+    private bool registrationFailed = false;
+
+    private async Task HandleRegistration()
+    {
+        var result = await AuthService.RegisterUser(registerModel.Email, registerModel.Password);
+        if (!result)
+        {
+            registrationFailed = true;
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+    }
+
+    public class RegisterModel
+    {
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
+}

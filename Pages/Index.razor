@@ -1,0 +1,83 @@
+﻿@page "/"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
+@using System.Text
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@using Microsoft.IdentityModel.Tokens;
+@inject Microsoft.JSInterop.IJSRuntime JSRuntime
+
+<PageTitle>Index</PageTitle>
+
+
+@if (!string.IsNullOrEmpty(decodedToken))
+{
+    <h3>JWT Token (Decoded):</h3>
+    <pre>@decodedToken</pre>
+    <button class="btn btn-primary" @onclick="Logout">Logout</button>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    private string? decodedToken;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Retrieve the JWT token from session storage
+            var token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "jwt");
+
+            // Decode the token
+            decodedToken = DecodeToken(token);
+            StateHasChanged(); // Notify the component that the state has changed
+        }
+    }
+
+    private string? DecodeToken(string? token)
+    {
+        if (string.IsNullOrEmpty(token))
+            return null;
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(Configuration["JwtSettings:SecretKey"] ?? string.Empty);
+
+        try
+        {
+            tokenHandler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidIssuer = Configuration["JwtSettings:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = Configuration["JwtSettings:Audience"],
+                ClockSkew = TimeSpan.Zero
+            }, out SecurityToken validatedToken);
+
+            var jwtToken = (JwtSecurityToken)validatedToken;
+            var claims = jwtToken.Claims.ToDictionary(c => c.Type, c => c.Value);
+            var decodedToken = $"Subject: {claims[JwtRegisteredClaimNames.Sub]}\nJTI: {claims[JwtRegisteredClaimNames.Jti]}";
+
+            return decodedToken;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task Logout()
+    {
+        // Clear the JWT token from session storage
+        await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "jwt");
+
+        // Navigate to the logout page or perform any other logout logic
+        NavigationManager.NavigateTo("/logout", true);
+    }
+}
