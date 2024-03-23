@@ -9,12 +9,14 @@
 
 <h3>Login</h3>
 
+
 @if (loginFailed)
-{
+{// Display error message if login failed.
     <div class="alert alert-danger" role="alert">
         Login failed. Please check your credentials and try again.
     </div>
 }
+
 
 <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
     <DataAnnotationsValidator />
@@ -35,29 +37,31 @@
 </EditForm>
 
 @code {
-    private LoginModel loginModel = new LoginModel();
-    private bool loginFailed = false;
+    private LoginModel loginModel = new LoginModel(); // Initialize login model
+    private bool loginFailed = false; // Flag to track login failure
 
+    // Method to handle login submission.
     private async Task HandleLogin()
     {
         var success = await AuthService.ValidateUser(loginModel.Email, loginModel.Password);
-        loginFailed = !success;
+        loginFailed = !success; // Update loginFailed flag based on validation result
         if (success)
         {
             // Retrieve the user from the database
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginModel.Email);
             if (user != null)
             {
-                // Generate the JWT token
+                // Generate JWT token for the authenticated user
                 var token = AuthService.GenerateJwtToken(user);
 
-                // Store the JWT token in session storage
+                // Store JWT token in session storage using JavaScript interop
                 await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "jwt", token);
             }
-            NavigationManager.NavigateTo("/", true);
+            NavigationManager.NavigateTo("/", true); // Redirect to the home page after successful login
         }
     }
 
+    // Model representing login credentials.
     public class LoginModel
     {
         public string? Email { get; set; }

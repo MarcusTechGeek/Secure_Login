@@ -17,16 +17,19 @@ namespace SecureLogin.Services
             _context = context;
         }
 
+        // Get all users asynchronously.
         public async Task<List<User>> GetUsersAsync()
         {
             return await _context.Users.ToListAsync();
         }
 
+        // Get a user by ID asynchronously.
         public async Task<User?> GetUserByIdAsync(int id)
         {
             return await _context.Users.FindAsync(id);
         }
 
+        // Add a new user asynchronously.
         public async Task<bool> AddUserAsync(User user)
         {
             // Hash the password using bcrypt if it's not null
@@ -40,6 +43,7 @@ namespace SecureLogin.Services
             return result > 0;
         }
 
+        // Update a user asynchronously.
         public async Task<bool> UpdateUserAsync(User user)
         {
             // Hash the password using bcrypt if it has changed and is not null
@@ -53,6 +57,7 @@ namespace SecureLogin.Services
             return result > 0;
         }
 
+        // Remove a user by ID asynchronously.
         public async Task<bool> RemoveUserAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -63,6 +68,7 @@ namespace SecureLogin.Services
             return result > 0;
         }
 
+        // Search users asynchronously by email.
         public async Task<List<User>> SearchUsersAsync(string searchTerm)
         {
             return await _context.Users

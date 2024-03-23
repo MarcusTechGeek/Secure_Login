@@ -5,12 +5,14 @@
 
 <h3>Register</h3>
 
+
 @if (registrationFailed)
-{
+{// Display error message if registration failed.
     <div class="alert alert-danger" role="alert">
         Registration failed. This email might already be used or there was an error. Please try again.
     </div>
 }
+
 
 <EditForm Model="@registerModel" OnValidSubmit="HandleRegistration">
     <DataAnnotationsValidator />
@@ -30,22 +32,24 @@
 </EditForm>
 
 @code {
-    private RegisterModel registerModel = new RegisterModel();
-    private bool registrationFailed = false;
+    private RegisterModel registerModel = new RegisterModel(); // Initialize registration model
+    private bool registrationFailed = false; // Flag to track registration failure
 
+    // Method to handle registration submission.
     private async Task HandleRegistration()
     {
         var result = await AuthService.RegisterUser(registerModel.Email, registerModel.Password);
         if (!result)
         {
-            registrationFailed = true;
+            registrationFailed = true; // Update registrationFailed flag if registration fails
         }
         else
         {
-            NavigationManager.NavigateTo("/login");
+            NavigationManager.NavigateTo("/login"); // Redirect to login page after successful registration
         }
     }
 
+    // Model representing registration data.
     public class RegisterModel
     {
         public string? Email { get; set; }

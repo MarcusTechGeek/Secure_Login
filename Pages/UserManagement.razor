@@ -1,12 +1,12 @@
 @page "/usermanagement"
 @attribute [Authorize(Roles = "Admin")]
-@inject IJSRuntime JSRuntime
-
 @using SecureLogin.Models
 @using SecureLogin.Services
 @inject IUserService UserService
+@inject IJSRuntime JSRuntime
 
 <h3>User Management</h3>
+
 
 <div class="input-group mb-3">
     <input type="text" class="form-control" placeholder="Search by email" @bind="searchTerm">
@@ -14,6 +14,7 @@
         <button class="btn btn-outline-secondary" @onclick="SearchUsers">Search</button>
     </div>
 </div>
+
 
 @if (users != null && users.Any())
 {
@@ -46,14 +47,16 @@ else
 }
 
 @code {
-    private List<User> users;
-    private string searchTerm;
+    private List<User> users; // List to store users
+    private string searchTerm; // Search term for filtering users
 
+    // Method to initialize the component and load users.
     protected override async Task OnInitializedAsync()
     {
         await LoadUsersAsync();
     }
 
+    // Method to load users asynchronously.
     private async Task LoadUsersAsync()
     {
         try
@@ -66,11 +69,13 @@ else
         }
     }
 
+    // Method to show edit popup for a user.
     private async Task ShowEditPopup(User user)
     {
         await JSRuntime.InvokeVoidAsync("showEditPopup", user.Id, user.Email);
     }
 
+    // Method to delete a user.
     private async Task DeleteUser(int userId)
     {
         try
@@ -87,6 +92,7 @@ else
         }
     }
 
+    // Method to search users based on the search term.
     private async Task SearchUsers()
     {
         try
@@ -106,39 +112,32 @@ else
         }
     }
 
+    // Method to update a user and refresh the table.
     [JSInvokable]
     public async Task UpdateUserAndRefreshTable(int userId, string newEmail, string newPassword)
     {
         try
         {
-            // Get the existing user from the UserService
             var existingUser = await UserService.GetUserByIdAsync(userId);
 
             if (existingUser != null)
             {
-                // Update the user's email
                 existingUser.Email = newEmail;
 
-                // Update the user's information
                 var updatedUser = await UserService.UpdateUserAsync(existingUser);
 
                 if (updatedUser != null)
                 {
-                    // Fetch the updated list of users
                     await LoadUsersAsync();
-
-                    // Optionally, you can show a success message or perform additional actions
                     Console.WriteLine("User updated successfully");
                 }
                 else
                 {
-                    // Handle the case when the user update fails
                     Console.WriteLine("Failed to update user");
                 }
             }
             else
             {
-                // Handle the case when the user is not found
                 Console.WriteLine("User not found");
             }
         }

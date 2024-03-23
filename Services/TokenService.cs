@@ -15,6 +15,7 @@ namespace SecureLogin.Services
             _logger = logger;
         }
 
+        // Get decoded JWT token.
         public string GetDecodedToken()
         {
             var jwtToken = _httpContextAccessor.HttpContext?.Session.GetString("JWTToken");

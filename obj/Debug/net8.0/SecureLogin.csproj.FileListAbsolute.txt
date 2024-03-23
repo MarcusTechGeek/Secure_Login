@@ -273,3 +273,4 @@ C:\Users\Master\OneDrive\Documents\Login_Page\SECURELOGIN\Secure_Login\obj\Debug
 C:\Users\Master\OneDrive\Documents\Login_Page\SECURELOGIN\Secure_Login\obj\Debug\net8.0\SecureLogin.pdb
 C:\Users\Master\OneDrive\Documents\Login_Page\SECURELOGIN\Secure_Login\obj\Debug\net8.0\SecureLogin.genruntimeconfig.cache
 C:\Users\Master\OneDrive\Documents\Login_Page\SECURELOGIN\Secure_Login\obj\Debug\net8.0\ref\SecureLogin.dll
+C:\Users\Master\OneDrive\Documents\Login_Page\SECURELOGIN\Secure_Login\obj\Debug\net8.0\SecureLogin.sourcelink.json

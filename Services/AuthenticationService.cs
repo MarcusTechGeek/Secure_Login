@@ -20,6 +20,7 @@ namespace SecureLogin.Services
             _configuration = configuration;
         }
 
+        // Generate JWT token for the user.
         public string GenerateJwtToken(User user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"]!));
@@ -38,12 +39,14 @@ namespace SecureLogin.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        // Validate user credentials.
         public async Task<bool> ValidateUser(string email, string password)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             return user != null && VerifyPassword(password, user.PasswordHash!);
         }
 
+        // Register new user.
         public async Task<bool> RegisterUser(string email, string password)
         {
             if (await _context.Users.AnyAsync(u => u.Email == email))
@@ -58,6 +61,7 @@ namespace SecureLogin.Services
             return true;
         }
 
+        // Hash password using SHA256 algorithm.
         private static string HashPassword(string password)
         {
             using var sha256 = SHA256.Create();
@@ -65,6 +69,7 @@ namespace SecureLogin.Services
             return BitConverter.ToString(hashedBytes).Replace("-", "").ToLower();
         }
 
+        // Verify password by comparing hashed passwords.
         private static bool VerifyPassword(string enteredPassword, string storedHash)
         {
             var enteredHash = HashPassword(enteredPassword);

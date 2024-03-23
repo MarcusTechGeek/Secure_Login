@@ -9,36 +9,36 @@
 @using Microsoft.IdentityModel.Tokens;
 @inject Microsoft.JSInterop.IJSRuntime JSRuntime
 
-<PageTitle>Index</PageTitle>
-
 
 @if (!string.IsNullOrEmpty(decodedToken))
-{
+{// Display decoded JWT token if available or show a loading message.
     <h3>JWT Token (Decoded):</h3>
     <pre>@decodedToken</pre>
     <button class="btn btn-primary" @onclick="Logout">Logout</button>
 }
 else
 {
-    <p>Loading...</p>
+    <p>Please log in. Loading...</p>
 }
 
 @code {
     private string? decodedToken;
 
+    // This method is called after the component has rendered.
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Retrieve the JWT token from session storage
+            // Retrieve the JWT token from session storage using JavaScript interop.
             var token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "jwt");
 
-            // Decode the token
+            // Decode the retrieved token.
             decodedToken = DecodeToken(token);
             StateHasChanged(); // Notify the component that the state has changed
         }
     }
 
+    // Decode the JWT token.
     private string? DecodeToken(string? token)
     {
         if (string.IsNullOrEmpty(token))
@@ -49,6 +49,7 @@ else
 
         try
         {
+            // Validate and decode the token.
             tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
@@ -72,12 +73,10 @@ else
         }
     }
 
+    // Logout method clears the JWT token from session storage and navigates to the logout page.
     private async Task Logout()
     {
-        // Clear the JWT token from session storage
-        await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "jwt");
-
-        // Navigate to the logout page or perform any other logout logic
-        NavigationManager.NavigateTo("/logout", true);
+        await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "jwt"); // Clear the JWT token
+        NavigationManager.NavigateTo("/logout", true); 
     }
 }

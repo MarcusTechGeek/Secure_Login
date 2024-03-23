@@ -1,6 +1,5 @@
 using System.Net.Http;
 using System.Text;
-using System.Web;
 
 public class EmailSender
 {
@@ -13,6 +12,7 @@ public class EmailSender
         _fromEmail = fromEmail;
     }
 
+    // Send email asynchronously.
     public async Task SendEmailAsync(string toEmail, string subject, string content)
     {
         var client = new HttpClient();

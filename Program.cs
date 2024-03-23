@@ -16,7 +16,6 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuthenticationService>();
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
